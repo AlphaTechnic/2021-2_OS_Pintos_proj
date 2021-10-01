@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="e9ece113-5fe8-4bd9-819e-7e231d1afb16" name="cspro">
+        <fileTransfer rootFolder="/sogang/under/cse20121277" accessType="SFTP" host="cspro9.sogang.ac.kr" port="22" sshConfigId="6d216798-70c1-4da2-b5f9-130ef7765d76" sshConfig="cse20121277@cspro9.sogang.ac.kr:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
