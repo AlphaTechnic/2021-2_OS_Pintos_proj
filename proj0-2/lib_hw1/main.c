@@ -395,3 +395,163 @@ void list_handler(char* command, int flag){
     }
     return;
 }
+
+
+unsigned hash_int_2(int i){
+    unsigned hash = FNV_32_BASIS;
+
+    while (i > 0){
+        if (i & 1 == 1){
+            hash = hash ^ FNV_32_PRIME;
+        }
+        i >>= 1;
+    }
+    return hash;
+}
+
+unsigned hash_hash_function(const struct hash_elem* e, void *aux){
+    struct hash_item* hitem = hash_entry(e, struct hash_item, elem);
+    int val = hitem->data;
+    return hash_int(val);
+}
+
+bool hash_less_function(const struct hash_elem* a, const struct hash_elem* b, void* aux){
+    struct hash_item* aitem = hash_entry(a, struct hash_item, elem);
+    int aval = aitem->data;
+
+    struct hash_item* bitem = hash_entry(b, struct hash_item, elem);
+    int bval = bitem->data;
+
+    return aval < bval;
+}
+
+#define SQUARE 0
+#define TRIPLE 1
+void hash_action_on_element(struct hash_elem* e, void *aux){
+    int flag = *(int*)aux;
+
+    struct hash_item *hitem = hash_entry(e, struct hash_item, elem);
+    int val = hitem->data;
+
+    switch (flag){
+        case SQUARE:
+            hitem->data = val * val;
+            break;
+        case TRIPLE:
+            hitem->data = val * val * val;
+            break;
+    }
+}
+
+void hash_action_destructor(struct hash_elem* e, void* aux){
+    struct hash_item *hitem = hash_entry(e, struct hash_item, elem);
+    free(hitem);
+    hitem = NULL;
+}
+
+void hash_handler(char* command, int flag){
+    int idx;
+
+    // split command
+    param[0] = strtok(command, " ");
+    int i = 1;
+    while (true){
+        param[i] = strtok(NULL, " ");
+        if (param[i] == NULL) break;
+        i++;
+    }
+
+    switch(flag){
+        case CREATE:
+            idx = command[0] - '0';
+            H[idx] = (struct hash*)malloc(sizeof(struct hash));
+            void* aux;
+            hash_init(H[idx], hash_hash_function, hash_less_func, aux);
+            break;
+        case DELETE:
+            idx = command[0] - '0';
+            hash_destroy(H[idx], hash_action_destructor);
+            break;
+        case DUMP:
+            idx = command[0] - '0';
+            hash_first(Hash_Iterator, H[idx]);
+            struct hash_elem* cur;
+
+            while (true){
+                cur = hash_next(Hash_Iterator);
+                if (cur == NULL) break;
+
+                struct hash_item *hitem = hash_entry(cur, struct hash_item, elem);
+                int val = hitem->data;
+                printf("%d ", val);
+            }
+            printf("\n");
+    }
+
+    if (flag == OTHERS){
+        idx = params[1][4] - '0';
+
+        if (strncmp(param[0], "insert", 6) == 0){
+            int val = str2int(param[2]);
+            struct hash_item* new_item = (struct hash_item*)malloc(sizeof(struct hash_item));
+            new_item->data = val;
+            hash_insert(H[idx], &(new_item->elem));
+        }
+        else if (strncmp(param[0], "apply", 5) == 0){
+            void* aux;
+            int flag;
+
+            if (strncmp(param[2], "square", 6) == 0){
+                flag = SQUARE;
+            }
+            else if (strncmp(param[2]. "triple", 6) == 0){
+                flag = TRIPLE;
+            }
+            aux = &flag;
+            H[idx]->aux = aux;
+            hash_apply(H[idx], hash_action_on_element);
+        }
+        else if (strncmp(param[0], "delete", 6) == 0){
+            int target = str2int(param[2]);
+
+            struct hash_item* new_item = (struct hash_item*)malloc(sizeof(struct(hash_item));
+            new_item->data = target;
+            hash_delete(H[idx], &(new_item->elem));
+            free(new_item);
+            new_item = NULL;
+        }
+        else if (strncmp(param[0], "empty", 5) == 0){
+            if (hash_empty(H[idx])) {
+                printf("true\n");
+            }
+            else {
+                printf("false\n");
+            }
+        }
+        else if (strncmp(param[0], "size", 4) == 0){
+            printf("%d\n", (int)hash_size(H[idx]));
+        }
+        else if (strncmp(param[0], "clear", 5)){
+            hash_clear(H[idx], hash_action_destructor);
+        }
+        else if (strncmp(param[0], "find", 4) == 0){
+            int tar = str2int(param[2]);
+            struct hash_elem* found;
+
+            struct hash_item *new_item = (struct hash_item*)malloc(sizeof(struct hash_item));
+            new_item->data = tar;
+            found = hash_find(H[idx], &(new_iterm->elem));
+
+            if (found != NULL){
+                printf("%d\n", tar);
+            }
+        }
+        else if (strncmp(param[0], "replace", 7)){
+            int val = str2int(param[2]);
+            struct hash_item *new_item = (struct hash_item*)malloc(sizeof(struct hash_item));
+            new_item->data = val;
+
+            hash_replace(H[idx], &(new_item->elem));
+        }
+    }
+}
