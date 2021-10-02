@@ -133,7 +133,7 @@ bitmap_destroy (struct bitmap *b)
       free (b);
     }
 }
-
+
 /* Bitmap size. */
 
 /* Returns the number of bits in B. */
@@ -142,7 +142,7 @@ bitmap_size (const struct bitmap *b)
 {
   return b->bit_cnt;
 }
-
+
 /* Setting and testing single bits. */
 
 /* Atomically sets the bit numbered IDX in B to VALUE. */

@@ -531,3 +531,17 @@ list_min (struct list *list, list_less_func *less, void *aux)
     }
   return min;
 }
+
+bool list_less_function(const struct list_elem *a, const struct list_elem *b, void *aux){
+
+    int aval, bval;
+
+    struct list_item* aitem = list_entry( a, struct list_item, elem);
+    aval = aitem->data;
+
+    struct list_item* bitem = list_entry( b, struct list_item, elem);
+    bval = bitem->data;
+
+    return (aval < bval);
+
+}
