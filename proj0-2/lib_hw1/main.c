@@ -184,7 +184,7 @@ void dumpdata(char *cmd) {
 // list
 void list_handler(char *cmd, action_t action) {
     struct list_elem *cur_elem, *nxt_elem;
-    void *aux;
+    void *aux = NULL;
     int nth, i;
 
     parse_cmd(cmd);
