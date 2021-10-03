@@ -41,18 +41,15 @@ void bitmap_handler(char *, action_t action);
 void hash_handler(char *, action_t action);
 
 // LIST
-void list_swap(struct list_elem *elem1, struct list_elem *elem2);
-void list_shuffle(struct list *lst);
+
 
 // HASH
-unsigned hash_int_2(int i);
 unsigned hash_hash_function(const struct hash_elem *e, void *aux);
 bool hash_less_function(const struct hash_elem *a, const struct hash_elem *b, void *aux);
 void hash_action_on_element(struct hash_elem *e, void *aux);
 void hash_action_destructor(struct hash_elem *e, void *aux);
 
 // BITMAP
-struct bitmap *bitmap_expand(struct bitmap *bm, int add_sz);
 
 // Data Structure
 char *ARGS[6];
@@ -183,37 +180,8 @@ void dumpdata(char *cmd) {
     }
 }
 
+
 // list
-void list_swap(struct list_elem *elem1, struct list_elem *elem2) {
-    struct list_item *itm1 = list_entry(elem1, struct list_item, elem);
-    int dt1 = itm1->data;
-
-    struct list_item *itm2 = list_entry(elem2, struct list_item, elem);
-    int dt2 = itm2->data;
-
-    itm1->data = dt2;
-    itm2->data = dt1;
-}
-
-void list_shuffle(struct list *lst) {
-    int sz = list_size(lst);
-    struct list_elem *elem1, *elem2, *cur;
-    int a, b, idx;
-    int cnt = rand() % 10;
-
-    for (int i = 0; i < cnt; i++) {
-        b = a = rand() % sz;
-        while (a == b) b = rand() % sz;
-
-        for (cur = list_begin(lst), idx = 0; cur != list_end(lst); cur = list_next(cur), idx++) {
-            if (idx == a) elem1 = cur;
-            else if (idx == b) elem2 = cur;
-        }
-        list_swap(elem1, elem2);
-    }
-}
-
-
 void list_handler(char *cmd, action_t action) {
     struct list_elem *cur_elem, *nxt_elem;
     void *aux;
@@ -432,15 +400,6 @@ void list_handler(char *cmd, action_t action) {
 
 
 // hash
-unsigned hash_int_2(int i) {
-    unsigned h_val = FNV_32_BASIS;
-    while (i > 0) {
-        if ((i & 1) == 1) h_val = h_val ^ FNV_32_PRIME;
-        i >>= 1;
-    }
-    return h_val;
-}
-
 unsigned hash_hash_function(const struct hash_elem *e, void *aux) {
     struct hash_item *itm = hash_entry(e, struct hash_item, elem);
     return hash_int(itm->data);
@@ -597,14 +556,6 @@ void hash_handler(char *cmd, action_t action) {
 
 
 // bitmap
-struct bitmap *bitmap_expand(struct bitmap *bm, int add_sz) {
-    int org_sz = bitmap_size(bm);
-    bm->bit_cnt = org_sz + add_sz;
-    bm->bits = (elem_type *) realloc(bm->bits, (org_sz + add_sz) * sizeof(elem_type));
-    bitmap_set_multiple(bm, org_sz, add_sz, false);
-    return bm;
-}
-
 void bitmap_handler(char *cmd, action_t action) {
     int bm_sz;
     int nth;

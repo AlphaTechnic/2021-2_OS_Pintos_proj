@@ -1,5 +1,6 @@
 #include "list.h"
 #include <assert.h>	// Instead of	#include "../debug.h"
+#include <stdlib.h> // for rand()
 #define ASSERT(CONDITION) assert(CONDITION)	// patched for proj0-2
 
 /* Our doubly linked lists have two header elements: the "head"
@@ -544,4 +545,35 @@ bool list_less_function(const struct list_elem *a, const struct list_elem *b, vo
 
     return (aval < bval);
 
+}
+
+
+// additional implementation
+void list_swap(struct list_elem *elem1, struct list_elem *elem2) {
+    struct list_item *itm1 = list_entry(elem1, struct list_item, elem);
+    int dt1 = itm1->data;
+
+    struct list_item *itm2 = list_entry(elem2, struct list_item, elem);
+    int dt2 = itm2->data;
+
+    itm1->data = dt2;
+    itm2->data = dt1;
+}
+
+void list_shuffle(struct list *lst) {
+    int sz = list_size(lst);
+    struct list_elem *elem1, *elem2, *cur;
+    int a, b, idx;
+    int cnt = rand() % 10;
+
+    for (int i = 0; i < cnt; i++) {
+        b = a = rand() % sz;
+        while (a == b) b = rand() % sz;
+
+        for (cur = list_begin(lst), idx = 0; cur != list_end(lst); cur = list_next(cur), idx++) {
+            if (idx == a) elem1 = cur;
+            else if (idx == b) elem2 = cur;
+        }
+        list_swap(elem1, elem2);
+    }
 }

@@ -173,4 +173,9 @@ struct list_elem *list_max (struct list *, list_less_func *, void *aux);
 struct list_elem *list_min (struct list *, list_less_func *, void *aux);
 bool list_less_function(const struct list_elem *a, const struct list_elem *b, void *aux);
 
+
+/* Additional Implementation */
+void list_swap(struct list_elem *elem1, struct list_elem *elem2);
+void list_shuffle(struct list *lst);
+
 #endif /* lib/kernel/list.h */

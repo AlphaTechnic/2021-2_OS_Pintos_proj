@@ -430,3 +430,12 @@ remove_elem (struct hash *h, struct hash_elem *e)
   list_remove (&e->list_elem);
 }
 
+/* Additional implementation */
+unsigned hash_int_2(int i) {
+    unsigned h_val = FNV_32_BASIS;
+    while (i > 0) {
+        if ((i & 1) == 1) h_val = h_val ^ FNV_32_PRIME;
+        i >>= 1;
+    }
+    return h_val;
+}
