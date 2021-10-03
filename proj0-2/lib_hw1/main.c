@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 // for hash_func
 #define FNV_32_PRIME 16777619u
 #define FNV_32_BASIS 2166136261u
@@ -39,8 +38,6 @@ void dumpdata(char *);
 void list_handler(char *, action_t action);
 void bitmap_handler(char *, action_t action);
 void hash_handler(char *, action_t action);
-
-// LIST
 
 
 // HASH
