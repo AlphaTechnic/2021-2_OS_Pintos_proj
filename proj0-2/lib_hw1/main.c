@@ -25,7 +25,6 @@ typedef enum action {
     METHOD
 } action_t;
 
-
 // UTILS
 int str2int(const char *);
 void parse_cmd(char *cmd);
@@ -35,18 +34,19 @@ bool run(char *);
 void create(char *);
 void delete(char *);
 void dumpdata(char *);
-void list_handler(char *, action_t action);
-void bitmap_handler(char *, action_t action);
-void hash_handler(char *, action_t action);
 
+// LIST
+void list_handler(char *, action_t action);
 
 // HASH
+void hash_handler(char *, action_t action);
 unsigned hash_hash_function(const struct hash_elem *e, void *aux);
 bool hash_less_function(const struct hash_elem *a, const struct hash_elem *b, void *aux);
 void hash_action_on_element(struct hash_elem *e, void *aux);
 void hash_action_destructor(struct hash_elem *e, void *aux);
 
 // BITMAP
+void bitmap_handler(char *, action_t action);
 
 // Data Structure
 char *ARGS[6];
