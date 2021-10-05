@@ -431,11 +431,12 @@ remove_elem (struct hash *h, struct hash_elem *e)
 }
 
 /* Additional implementation */
-unsigned hash_int_2(int i) {
-    unsigned h_val = FNV_32_BASIS;
-    while (i > 0) {
-        if ((i & 1) == 1) h_val = h_val ^ FNV_32_PRIME;
-        i >>= 1;
+unsigned hash_int_2(int i){
+    unsigned piv = (unsigned)(0xffffffff) - (unsigned)(i);
+    unsigned tot = 0;
+    while (piv){
+        tot += piv % 10;
+        piv /= 10;
     }
-    return h_val;
+    return tot;
 }
