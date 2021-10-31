@@ -200,13 +200,13 @@ inumber (int fd)
     return syscall1 (SYS_INUMBER, fd);
 }
 
+int max_of_four_int(int a, int b, int c, int d)
+{
+    return syscall4 (SYS_MAX, a, b, c, d);
+}
+
 int
 fibonacci (int n)
 {
     return syscall1 (SYS_FIB, n);
-}
-
-int max_of_four_int(int a, int b, int c, int d)
-{
-    return syscall4 (SYS_MAX, a, b, c, d);
 }
