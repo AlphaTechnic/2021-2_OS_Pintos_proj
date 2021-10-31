@@ -58,7 +58,7 @@ user level과 kernel level이 분리된 pintos OS 환경에서, kernel level에 
   - 이 logical한 가상의 메모리 공간이 physical하게는 page 단위의 실제 메모리공간과 mapping되어, 한정된 공간만을 사용하게 된다.
   - APP1이 사용하는 physical 메모리 공간과 APP2가 사용하는 physical 메모리 공간이 서로 침범하지 않도록, 또한 user level에서 구동되는 APP이 kernel level의 메모리 공간을 침범하지 않도록 OS가 관리한다.
 
- 
+
 
 ### 3. System Calls
 
@@ -141,19 +141,19 @@ user level과 kernel level이 분리된 pintos OS 환경에서, kernel level에 
 
 ### 1. Argument Passing
 
-![img1](./imgs/img1.jpg)
+![img1](./imgs_for_doc/img1.jpg)
 
 
 
 ### 2. User Memory Accesss
 
-![img2](./imgs/img2.jpg)
+![img2](./imgs_for_doc/img2.jpg)
 
 
 
 ### 3. System Calls
 
-![img3](./imgs/img3.jpg)
+![img3](./imgs_for_doc/img3.jpg)
 
 
 
@@ -431,18 +431,18 @@ user level과 kernel level이 분리된 pintos OS 환경에서, kernel level에 
 
 > 입력한 명령 - fibonacci 관련
 
-![img4](./imgs/img4.jpg)
+![img4](./imgs_for_doc/img4.jpg)
 
 > 수행 결과
 
-![img5](./imgs/img5.jpg)
+![img5](./imgs_for_doc/img5.jpg)
 
 
 
 > 입력한 명령 - max of four int 관련
 
-![img6](./imgs/img6.jpg)
+![img6](./imgs_for_doc/img6.jpg)
 
 > 수행 결과
 
-![img7](./imgs/img7.jpg)
+![img7](./imgs_for_doc/img7.jpg)
