@@ -1,0 +1,7 @@
+../utils/pintos --filesys-size=2 -p ../examples/echo -a echo -- -f -q run 'echo x'
+../utils/pintos --filesys-size=2 -p ../examples/additional -a additional -- -f -q run 'additional 10'
+../utils/pintos --filesys-size=2 -p ../examples/additional -a additional -- -f -q run 'additional 10 20 62 40'
+
+export PATH="$HOME/pintos/src/utils:$PATH"
+
+grep fibonacci -R .
