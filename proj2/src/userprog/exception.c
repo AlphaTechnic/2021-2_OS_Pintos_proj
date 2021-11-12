@@ -138,6 +138,8 @@ page_fault (struct intr_frame *f)
      [IA32-v3a] 5.15 "Interrupt 14--Page Fault Exception
      (#PF)". */
   asm ("movl %%cr2, %0" : "=r" (fault_addr));
+  //////////////////////////// 추가
+  if (is_kernel_vaddr(fault_addr)) sys_exit(-1);
 
   /* Turn interrupts back on (they were only off so that we could
      be assured of reading CR2 before it changed). */
@@ -148,13 +150,13 @@ page_fault (struct intr_frame *f)
 
   /* Determine cause. */
   not_present = (f->error_code & PF_P) == 0;
+  //////////////////////////// 추가
+  if (not_present) sys_exit(-1);
+
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
-
   //////////////////////////// 추가
   if (user == 0) sys_exit(-1);
-  if (is_kernel_vaddr(fault_addr)) sys_exit(-1);
-  if (not_present) sys_exit(-1);
 
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to

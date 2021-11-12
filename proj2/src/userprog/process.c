@@ -52,20 +52,17 @@ process_execute (const char *file_name)
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
 
   /////////////////// proj2 - semaphore 처리
-  sema_down(&thread_current()->load_sema);
+  // P, sem_wait()
+  // success 아닌 child reap 시킴
+  sema_down(&thread_current()->lock);
 
   if (tid == TID_ERROR) palloc_free_page (fn_copy);
+  for (struct list_elem *cur = list_begin(&(thread_current())->child);
+       cur != list_end(&(thread_current()->child)); cur = list_next(cur)) {
 
-  struct list_elem *e = list_begin(&(thread_current())->child);
-  struct thread* t;
-  while (e != list_end(&(thread_current()->child))) {
-    t = list_entry(e, struct thread, child_elem);
-    if (t->flag == 1) return process_wait(tid);
-
-    e = list_next(e);
+    if (list_entry(cur, struct thread, child_elem)->success == false) return process_wait(tid);
   }
   //////////////////////
-
 
   return tid;
 }
@@ -92,12 +89,13 @@ start_process (void *file_name_)
   palloc_free_page (file_name);
 
   //////////////////
-  sema_up(&(thread_current())->parent->load_sema);
+  // V, sem_signal() => 풀어줌
+  sema_up(&(thread_current())->parent->lock);
 
   if (!success){
-    thread_current()->flag = 1;
-    //thread_exit ();
+    thread_current()->success = false;
     sys_exit(-1);
+    //thread_exit ();
   }
 
   /* Start the user process by simulating a return from an
@@ -389,9 +387,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
     done:
   /* We arrive here whether the load is successful or not. */
 
-  //////////////////////////////
+  ////////// protection
   if (success) {
-    t->cur_file = file;
+    t->fp = file;
     file_deny_write(file);
   }
   //file_close (file);

@@ -478,15 +478,14 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&(t->child));
   list_push_back(&(running_thread()->child), &(t->child_elem));
 
-  // 추가
-
-  for (int i = 0; i < FILE_NUM; i++) {
-    t->fds[i] = NULL;
+  //////////////////// 추가
+  for (int fd = 0; fd < FILE_NUM; fd++) {
+    t->fds[fd] = NULL;
   }
-  sema_init(&(t->load_sema), 0);
-  t->flag = 0;
+  sema_init(&(t->lock), 0);
+  t->success = true;
+  t->fp = NULL;
   t->parent = running_thread();
-  t->cur_file = NULL;
 
 #endif
 }
