@@ -482,8 +482,8 @@ init_thread (struct thread *t, const char *name, int priority)
   for (int fd = 0; fd < FILE_NUM; fd++) {
     t->fds[fd] = NULL;
   }
-  sema_init(&(t->lock), 0);
-  t->success = true;
+  sema_init(&(t->success_sema), 0);
+  t->load_success = true;
   t->fp = NULL;
   t->parent = running_thread();
 

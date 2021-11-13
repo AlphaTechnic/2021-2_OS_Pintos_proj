@@ -53,14 +53,14 @@ process_execute (const char *file_name)
 
   /////////////////// proj2 - semaphore 처리
   // P, sem_wait()
-  // success 아닌 child reap 시킴
-  sema_down(&thread_current()->lock);
+  sema_down(&thread_current()->success_sema);
 
+  // success 안 된 child reap 시킴
   if (tid == TID_ERROR) palloc_free_page (fn_copy);
   for (struct list_elem *cur = list_begin(&(thread_current())->child);
        cur != list_end(&(thread_current()->child)); cur = list_next(cur)) {
 
-    if (list_entry(cur, struct thread, child_elem)->success == false) return process_wait(tid);
+    if (list_entry(cur, struct thread, child_elem)->load_success == false) return process_wait(tid);
   }
   //////////////////////
 
@@ -81,8 +81,7 @@ start_process (void *file_name_)
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-
-
+  
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
@@ -90,10 +89,10 @@ start_process (void *file_name_)
 
   //////////////////
   // V, sem_signal() => 풀어줌
-  sema_up(&(thread_current())->parent->lock);
+  sema_up(&(thread_current())->parent->success_sema);
 
   if (!success){
-    thread_current()->success = false;
+    thread_current()->load_success = false;
     sys_exit(-1);
     //thread_exit ();
   }
