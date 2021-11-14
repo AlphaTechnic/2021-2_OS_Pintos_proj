@@ -254,6 +254,7 @@ int sys_open(const char* file) {
 void sys_close(int fd) {
     if (thread_current()->fds[fd] == NULL) sys_exit(-1);
     file_close(thread_current()->fds[fd]);
+    // thread_current()->handling_fp = NULL;
     thread_current()->fds[fd] = NULL;
 }
 
@@ -272,7 +273,7 @@ void sys_exit (int status){
 
         process_wait(list_entry(cur, struct thread, child_elem)->tid);
     }
-    file_close(thread_current()->fp);
+    file_close(thread_current()->handling_fp);
     //////////////////////
 
     thread_exit();

@@ -52,10 +52,10 @@ process_execute (const char *file_name)
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
 
   /////////////////// proj2 - semaphore 처리
-  // P, sem_wait()
-  sema_down(&thread_current()->success_sema);
+  // P, sem_wait() => child가 load된 뒤, sema_up 해줄 때까지 대기한다.
+  sema_down(&thread_current()->load_sema);
 
-  // success 안 된 child reap 시킴
+  // 아제 child의 load 성공 여부를 보면서, load 실 child는 reap 시킴
   if (tid == TID_ERROR) palloc_free_page (fn_copy);
   for (struct list_elem *cur = list_begin(&(thread_current())->child);
        cur != list_end(&(thread_current()->child)); cur = list_next(cur)) {
@@ -81,18 +81,22 @@ start_process (void *file_name_)
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  
+
+
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
   palloc_free_page (file_name);
 
   //////////////////
-  // V, sem_signal() => 풀어줌
-  sema_up(&(thread_current())->parent->success_sema);
-
-  if (!success){
+  // V, sem_signal() => child가 parent의 load_sema를 풀어줌.
+  if (success){
+    thread_current()->load_success = true;  // 생략해도 무방
+    sema_up(&(thread_current())->parent->load_sema);
+  }
+  else {
     thread_current()->load_success = false;
+    sema_up(&(thread_current())->parent->load_sema);
     sys_exit(-1);
     //thread_exit ();
   }
@@ -388,7 +392,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   ////////// protection
   if (success) {
-    t->fp = file;
+    t->handling_fp = file;
     file_deny_write(file);
   }
   //file_close (file);

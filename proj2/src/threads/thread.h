@@ -105,14 +105,14 @@ struct thread
 	struct list child;
 	struct semaphore child_sema;
 	struct semaphore memory_sema;
-	struct semaphore success_sema;
+	struct semaphore load_sema;
 	struct list_elem child_elem;
 	int exit_status;
 
 	// proj2 - thread 구조체에 속성들 추가
 	struct file* fds[FILE_NUM];
 	bool load_success;  // load의 성공 여부
-	struct file* fp;
+	struct file* handling_fp;
 	struct thread* parent;
 #endif
 
