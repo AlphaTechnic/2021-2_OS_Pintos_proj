@@ -55,7 +55,7 @@ process_execute (const char *file_name)
   // P, sem_wait() => child가 load된 뒤, sema_up 해줄 때까지 대기한다.
   sema_down(&thread_current()->load_sema);
 
-  // 아제 child의 load 성공 여부를 보면서, load 실 child는 reap 시킴
+  // 아제 child의 load 성공 여부를 보면서, load 실패 child는 reap 시킴
   if (tid == TID_ERROR) palloc_free_page (fn_copy);
   for (struct list_elem *cur = list_begin(&(thread_current())->child);
        cur != list_end(&(thread_current()->child)); cur = list_next(cur)) {
@@ -88,7 +88,7 @@ start_process (void *file_name_)
   /* If load failed, quit. */
   palloc_free_page (file_name);
 
-  //////////////////
+  //////////////////////
   // V, sem_signal() => child가 parent의 load_sema를 풀어줌.
   if (success){
     thread_current()->load_success = true;  // 생략해도 무방
@@ -100,6 +100,7 @@ start_process (void *file_name_)
     sys_exit(-1);
     //thread_exit ();
   }
+  //////////////////////
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
