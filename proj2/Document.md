@@ -1,6 +1,6 @@
 # 1. 개발 목표
 
-proj1에 이어 file system과 관련한 system call을 추가로 구현한다. (`create`, `remove`, `open`, `close`, `filesize`, `read`, `write`, `seek`, `tell)`
+proj1에 이어 file system과 관련한 system call을 추가로 구현한다. (`create`, `remove`, `open`, `close`, `filesize`, `read`, `write`, `seek`, `tell`)
 
 
 
