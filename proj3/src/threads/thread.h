@@ -6,20 +6,16 @@
 #include <stdint.h>
 #include "synch.h"
 
-//////// for proj3
-#include "threads/synch.h"
-
-
-//////// new definition for proj2
-#define FILE_NUM (128)
-
-
-//////// for proj3
 #ifndef USERPROG
 extern bool thread_prior_aging;
 #endif
 
+//////// new definition for proj2
+#define FILE_NUM (128)
+//////// for proj3
+#define FRACTION (1 << 14)
 
+//////// new definition for proj2
 struct lock file_lock;
 
 /* States in a thread's life cycle. */
@@ -110,6 +106,11 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+    /////////////// for proj3
+    int wakeuptime;
+    int nice;
+    int recent_cpu;
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -135,6 +136,11 @@ struct thread
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+////////// proj3
+bool thread_priority_comp (const struct list_elem* left, const struct list_elem* right, void *aux);
+void update_nice_recent_cpu(void);
+void update_priority(void);
 
 void thread_init (void);
 void thread_start (void);
