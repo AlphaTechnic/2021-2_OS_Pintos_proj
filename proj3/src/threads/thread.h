@@ -6,8 +6,19 @@
 #include <stdint.h>
 #include "synch.h"
 
-//////// new definition
+//////// for proj3
+#include "threads/synch.h"
+
+
+//////// new definition for proj2
 #define FILE_NUM (128)
+
+
+//////// for proj3
+#ifndef USERPROG
+extern bool thread_prior_aging;
+#endif
+
 
 struct lock file_lock;
 
