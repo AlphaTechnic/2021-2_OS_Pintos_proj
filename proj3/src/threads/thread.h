@@ -6,14 +6,19 @@
 #include <stdint.h>
 #include "synch.h"
 
+///// proj2
+#define FILE_NUM (128)
+struct lock file_lock;
+
+///// proj3
+#define FRACTION (1<<14)
+
 #ifndef USERPROG
 extern bool thread_prior_aging;
 #endif
+int load_avg;
 
-static int load_avg;
-#define FRACTION (1<<14)
 
-struct lock file_lock;
 /* States in a thread's life cycle. */
 enum thread_status
 {
@@ -113,14 +118,15 @@ struct thread
 	struct list child;
 	struct semaphore child_sema;
 	struct semaphore memory_sema;
+	struct semaphore load_sema;
 	struct list_elem child_elem;
 	int exit_status;
-	struct file* fd[128];
-	struct semaphore load_sema;
-	int flag;
-	struct thread* parent;
-	struct file*cur_file;
 
+	// proj2 - thread 구조체에 속성들 추가
+	struct file* fds[FILE_NUM];
+	bool load_success;  // load의 성공 여부
+	struct file* handling_fp;
+	struct thread* parent;
 #endif
 
     /* Owned by thread.c. */
@@ -135,9 +141,8 @@ extern bool thread_mlfqs;
 //////// proj 3
 void update_nice_and_recent_cpu(void);
 void update_priority(void);
-
-
 bool thread_priority_comp(const struct list_elem*, const struct list_elem*, void *);
+
 void thread_init (void);
 void thread_start (void);
 

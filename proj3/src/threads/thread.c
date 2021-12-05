@@ -54,6 +54,7 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
+////// proj3
 #ifndef USERPROG
 bool thread_prior_aging;
 #endif
@@ -70,10 +71,10 @@ static struct thread *running_thread (void);
 static struct thread *next_thread_to_run (void);
 static void init_thread (struct thread *, const char *name, int priority);
 static bool is_thread (struct thread *) UNUSED;
-                                        static void *alloc_frame (struct thread *, size_t size);
-                                        static void schedule (void);
-                                        void thread_schedule_tail (struct thread *prev);
-                                        static tid_t allocate_tid (void);
+static void *alloc_frame (struct thread *, size_t size);
+static void schedule (void);
+void thread_schedule_tail (struct thread *prev);
+static tid_t allocate_tid (void);
 
 
 /* Initializes the threading system by transforming the code
@@ -105,6 +106,8 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+
+  ///////////////////// proj2
   lock_init(&file_lock);
 
   /* Set up a thread structure for the running thread. */
@@ -334,7 +337,7 @@ thread_yield (void)
   old_level = intr_disable ();
   ///////////////////////////////
   if (cur != idle_thread) {
-    ////////// proj 3 - ready_list 에 단순 삽입이 아닌, 우선순위를 고려한 삽입
+    /// proj 3 - ready_list 에 단순 삽입이 아닌, 우선순위를 고려한 삽입
     //list_push_back (&ready_list, &cur->elem);
     list_insert_ordered(&ready_list, &cur->elem, thread_priority_comp, NULL);
   }
@@ -564,15 +567,18 @@ init_thread (struct thread *t, const char *name, int priority)
 
 #ifdef USERPROG
   sema_init(&(t->child_sema), 0);
-	sema_init(&(t->memory_sema), 0);
-	list_init(&(t->child));
-	list_push_back(&(running_thread()->child), &(t->child_elem));
-	for(int i=0; i<128; i++)
-		t->fd[i]=NULL;
-	sema_init(&(t->load_sema), 0);
-	t->flag=0;
-	t->parent = running_thread();
-	t->cur_file=NULL;
+  sema_init(&(t->memory_sema), 0);
+  list_init(&(t->child));
+  list_push_back(&(running_thread()->child), &(t->child_elem));
+
+  //////////////////// proj2
+  for (int fd = 0; fd < FILE_NUM; fd++) {
+    t->fds[fd] = NULL;
+  }
+  sema_init(&(t->load_sema), 0);
+  t->load_success = true;
+  t->handling_fp = NULL;
+  t->parent = running_thread();
 #endif
 }
 
