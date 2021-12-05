@@ -20,9 +20,6 @@
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
 
-//////// for proj3
-static int load_avg = 0;
-
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -73,20 +70,10 @@ static struct thread *running_thread (void);
 static struct thread *next_thread_to_run (void);
 static void init_thread (struct thread *, const char *name, int priority);
 static bool is_thread (struct thread *) UNUSED;
-static void *alloc_frame (struct thread *, size_t size);
-static void schedule (void);
-void thread_schedule_tail (struct thread *prev);
-static tid_t allocate_tid (void);
-
-
-/////////////// for proj3
-bool thread_priority_comp (const struct list_elem* left, const struct list_elem* right, void *aux) {
-  struct thread* l = list_entry(left, struct thread, elem);
-  struct thread* r = list_entry(right, struct thread, elem);
-  return l->priority > r->priority;
-}
-
-
+                                        static void *alloc_frame (struct thread *, size_t size);
+                                        static void schedule (void);
+                                        void thread_schedule_tail (struct thread *prev);
+                                        static tid_t allocate_tid (void);
 
 
 /* Initializes the threading system by transforming the code
@@ -102,6 +89,14 @@ bool thread_priority_comp (const struct list_elem* left, const struct list_elem*
 
    It is not safe to call thread_current() until this function
    finishes. */
+
+////////// proj 3
+bool thread_priority_comp (const struct list_elem * left, const struct list_elem * right, void *aux){
+  struct thread* l = list_entry(left, struct thread, elem);
+  struct thread* r = list_entry(right, struct thread, elem);
+  return l->priority > r->priority;
+}
+
 void
 thread_init (void)
 {
@@ -110,15 +105,11 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
-
-  ///////////////////// 추가 for proj2
-  lock_init (&file_lock);
+  lock_init(&file_lock);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
-
-  ///////////////////// 추가 for proj3
-  initial_thread->wakeuptime = 0;
+  initial_thread->time_to_wake_up = 0;
   initial_thread->nice = 0;
   initial_thread->recent_cpu = 0;
 
@@ -164,9 +155,8 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+
 }
-
-
 /* Prints thread statistics. */
 void
 thread_print_stats (void)
@@ -227,16 +217,11 @@ thread_create (const char *name, int priority,
   sf->ebp = 0;
 
   /* Add to run queue. */
+  //////////// proj 3
   thread_unblock (t);
-
-
-  /////////////// for proj3
-  if (!list_empty(&ready_list)) {
-    if (priority > thread_get_priority()) {
-      thread_yield();
-    }
+  if (!list_empty(&ready_list) && thread_get_priority() < priority){
+    thread_yield();
   }
-
   return tid;
 }
 
@@ -273,10 +258,10 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  /////////////// for proj3
-//  list_push_back (&ready_list, &t->elem);
-  list_insert_ordered(&ready_list, &t->elem, thread_priority_comp, NULL);
 
+  ////////// proj 3 - ready_list 에 단순 삽입이 아닌, 우선순위를 고려한 삽입
+  //list_push_back (&ready_list, &t->elem);
+  list_insert_ordered(&ready_list, &t->elem, thread_priority_comp, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -347,14 +332,16 @@ thread_yield (void)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
+  ///////////////////////////////
   if (cur != idle_thread) {
-    // list_push_back (&ready_list, &cur->elem);
-
-    /////////////// for proj3
+    ////////// proj 3 - ready_list 에 단순 삽입이 아닌, 우선순위를 고려한 삽입
+    //list_push_back (&ready_list, &cur->elem);
     list_insert_ordered(&ready_list, &cur->elem, thread_priority_comp, NULL);
   }
+  // 현재 thread 를 READY 상태로 변경
   cur->status = THREAD_READY;
   schedule ();
+  ///////////////////////////////
   intr_set_level (old_level);
 }
 
@@ -379,12 +366,11 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority)
 {
-  //////// for proj3
-  int tmp = thread_current()->priority;
+  int old_priority = thread_current()->priority;
   thread_current ()->priority = new_priority;
 
-  if (new_priority < tmp) {
-    // 스케줄링을 다시!
+  //////// current thread의 priority 가 줄어들었다면,
+  if (new_priority < old_priority) {
     thread_yield();
   }
 }
@@ -400,17 +386,16 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice)
 {
-  //////// for proj3
-  struct thread* cur = thread_current();
-
+  struct thread * cur = thread_current();
   cur->nice = nice;
-  cur->priority = PRI_MAX * FRACTION - (cur->recent_cpu / 4) - (2 * nice * FRACTION) / FRACTION;
+  cur->priority = PRI_MAX*FRACTION - (cur->recent_cpu/4) - ((nice*FRACTION) *2)/FRACTION;
 
-  if (cur->priority > PRI_MAX) {
-    cur->priority = PRI_MAX;
-  }
-  else if (cur->priority < PRI_MIN) {
+  // MIN 밑으로 떨어지거나 MAX를 넘어버리는 경우를 조정
+  if (cur->priority < PRI_MIN) {
     cur->priority = PRI_MIN;
+  }
+  else if (cur->priority > PRI_MAX) {
+    cur->priority = PRI_MAX;
   }
 }
 
@@ -418,8 +403,7 @@ thread_set_nice (int nice)
 int
 thread_get_nice (void)
 {
-  /* Not yet implemented. */
-  //////// for proj3
+
   return thread_current()->nice;
 }
 
@@ -427,8 +411,6 @@ thread_get_nice (void)
 int
 thread_get_load_avg (void)
 {
-  /* Not yet implemented. */
-  //////// for proj3
   return (100 * load_avg) / FRACTION;
 }
 
@@ -436,45 +418,50 @@ thread_get_load_avg (void)
 int
 thread_get_recent_cpu (void)
 {
-  /* Not yet implemented. */
   return (100 * thread_current()->recent_cpu) / FRACTION;
 }
 
-//////// for proj3
-// 모든 process의 nice와 recent_cpu를 업데이트한다
-void update_nice_recent_cpu(void) {
+void update_nice_and_recent_cpu(void) {
   int ready = list_size(&ready_list);
 
   if (thread_current() != idle_thread) {
-    ready = ready + 1;
+    ready++;
   }
 
-  load_avg = (59 * load_avg) / 60 + (ready * FRACTION) / 60;
+  // 여기서 ready는 READY와 RUNNING을 모두 합친 숫자
+  load_avg = (59*load_avg)/60 + (ready*FRACTION)/60;
 
-  struct thread *t;
-  struct list_elem *e;
-  for (e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)) {
-    t = list_entry(e, struct thread, allelem);
-    if (t != idle_thread) {
-      t->recent_cpu = ((int64_t)((int64_t)2*load_avg) * FRACTION / (2 * load_avg + FRACTION)) * t->recent_cpu / FRACTION + t->nice * FRACTION;
+  struct thread* cur;
+  struct list_elem* ele = list_begin(&all_list);
+  while (ele != list_end(&all_list)) {
+    cur = list_entry(ele, struct thread, allelem);
+    if (cur == idle_thread) {
+      ele = list_next(ele);
+      continue;
     }
+
+    cur->recent_cpu = ((int64_t)((int64_t)2*load_avg)*FRACTION / (2*load_avg+1*FRACTION)) * (cur->recent_cpu)/FRACTION + (cur->nice)*FRACTION;
+    ele = list_next(ele);
   }
 }
 
-//////// for proj3
-// 모든 process의 priority를 업데이트한다
-void update_priority(void){
-  struct thread*t;
-  struct list_elem *e;
-  for(e = list_begin(&all_list); e!=list_end(&all_list); e=list_next(e)){
-    t = list_entry(e, struct thread, allelem);
-    t->priority = (PRI_MAX*FRACTION - (t->recent_cpu/4)-(t->nice *2)*FRACTION)/FRACTION;
-    //
+void update_priority(void) {
+  struct thread *cur;
 
-    if(t->priority > PRI_MAX)
-      t->priority = PRI_MAX;
-    else if(t->priority < PRI_MIN)
-      t->priority = PRI_MIN;
+  struct list_elem* ele = list_begin(&all_list);
+  while (ele != list_end(&all_list)) {
+    cur = list_entry(ele, struct thread, allelem);
+    cur->priority = (PRI_MAX*FRACTION - (cur->recent_cpu/4)-(cur->nice *2)*FRACTION)/FRACTION;
+
+    // MIN 밑으로 떨어지거나 MAX를 넘어버리는 경우를 조정
+    if (cur->priority < PRI_MIN) {
+      cur->priority = PRI_MIN;
+    }
+    else if (cur->priority > PRI_MAX) {
+      cur->priority = PRI_MAX;
+    }
+
+    ele = list_next(ele);
   }
 }
 
@@ -571,26 +558,21 @@ init_thread (struct thread *t, const char *name, int priority)
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
 
-  //////// for proj3
-  // 부모의 recent_cpu, nice 값을 받도록 조치
-  t->recent_cpu = running_thread()->recent_cpu;
+  ////// proj 3 - 부모의 nice와 recent_cpu를 이어 받음
   t->nice = running_thread()->nice;
+  t->recent_cpu = running_thread()->recent_cpu;
 
 #ifdef USERPROG
   sema_init(&(t->child_sema), 0);
-  sema_init(&(t->memory_sema), 0);
-  list_init(&(t->child));
-  list_push_back(&(running_thread()->child), &(t->child_elem));
-
-  //////////////////// 추가
-  for (int fd = 0; fd < FILE_NUM; fd++) {
-    t->fds[fd] = NULL;
-  }
-  sema_init(&(t->load_sema), 0);
-  t->load_success = true;
-  t->handling_fp = NULL;
-  t->parent = running_thread();
-
+	sema_init(&(t->memory_sema), 0);
+	list_init(&(t->child));
+	list_push_back(&(running_thread()->child), &(t->child_elem));
+	for(int i=0; i<128; i++)
+		t->fd[i]=NULL;
+	sema_init(&(t->load_sema), 0);
+	t->flag=0;
+	t->parent = running_thread();
+	t->cur_file=NULL;
 #endif
 }
 

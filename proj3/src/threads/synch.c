@@ -113,32 +113,34 @@ sema_up (struct semaphore *sema)
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
+  ///////// proj3 - 단순하게 꺼내면 안되고, 최대 priority를 갖는 thread가 UNBLOCKED 되어야 한다.
 //  if (!list_empty (&sema->waiters))
 //    thread_unblock (list_entry (list_pop_front (&sema->waiters),
 //                                struct thread, elem));
 
-  //////// for proj3
-  if (!list_empty (&sema->waiters)) {
-    struct list_elem *list_max = list_begin(&sema->waiters);
-    struct thread *thread_max = list_entry(list_max, struct thread, elem);
+  //////// for proj3 - 최대 priority를 갖는 thread를 찾아 UNBLOCKED
+  if (!list_empty(&sema->waiters)) {
+    struct list_elem *ele_having_max_pri = list_begin(&sema->waiters);
+    struct thread *thread_having_max_pri = list_entry(ele_having_max_pri, struct thread, elem);
 
-    struct list_elem *e = list_begin(&sema->waiters);
-    struct thread * t ;
-    for (e = list_next(e); e!=list_end(&sema->waiters); e = list_next(e)){
-      t = list_entry(e, struct thread, elem);
-      if(t->priority > thread_max->priority){
-        thread_max = t;
-        list_max = e;
+    struct thread* cur;
+    struct list_elem* ele = list_begin(&sema->waiters);
+    while (ele != list_end(&sema->waiters)) {
+      cur = list_entry(ele, struct thread, elem);
+
+      if (cur->priority > thread_having_max_pri->priority) {
+        thread_having_max_pri = cur;
+        ele_having_max_pri = ele;
       }
+      ele = list_next(ele);
     }
 
-    list_remove(list_max);
-    thread_unblock (thread_max);
+    list_remove(ele_having_max_pri);
+    thread_unblock (thread_having_max_pri);
   }
 
   sema->value++;
   intr_set_level (old_level);
-
 
   //////// for proj3
   thread_yield();

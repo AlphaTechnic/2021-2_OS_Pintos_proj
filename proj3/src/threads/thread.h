@@ -10,14 +10,10 @@
 extern bool thread_prior_aging;
 #endif
 
-//////// new definition for proj2
-#define FILE_NUM (128)
-//////// for proj3
-#define FRACTION (1 << 14)
+static int load_avg;
+#define FRACTION (1<<14)
 
-//////// new definition for proj2
 struct lock file_lock;
-
 /* States in a thread's life cycle. */
 enum thread_status
 {
@@ -39,7 +35,7 @@ typedef int tid_t;
 
 /* A kernel thread or user process.
 
-   Each thread structure is stored in its own 4 kB page.  The
+   Each thread structure is stored in its own 4 B page.  The
    thread structure itself sits at the very bottom of the page
    (at offset 0).  The rest of the page is reserved for the
    thread's kernel stack, which grows downward from the top of
@@ -106,8 +102,8 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-    /////////////// for proj3
-    int wakeuptime;
+    ///////// for proj 3
+    int time_to_wake_up;
     int nice;
     int recent_cpu;
 
@@ -117,15 +113,14 @@ struct thread
 	struct list child;
 	struct semaphore child_sema;
 	struct semaphore memory_sema;
-	struct semaphore load_sema;
 	struct list_elem child_elem;
 	int exit_status;
-
-	// proj2 - thread 구조체에 속성들 추가
-	struct file* fds[FILE_NUM];
-	bool load_success;  // load의 성공 여부
-	struct file* handling_fp;
+	struct file* fd[128];
+	struct semaphore load_sema;
+	int flag;
 	struct thread* parent;
+	struct file*cur_file;
+
 #endif
 
     /* Owned by thread.c. */
@@ -137,11 +132,12 @@ struct thread
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
 
-////////// proj3
-bool thread_priority_comp (const struct list_elem* left, const struct list_elem* right, void *aux);
-void update_nice_recent_cpu(void);
+//////// proj 3
+void update_nice_and_recent_cpu(void);
 void update_priority(void);
 
+
+bool thread_priority_comp(const struct list_elem*, const struct list_elem*, void *);
 void thread_init (void);
 void thread_start (void);
 
