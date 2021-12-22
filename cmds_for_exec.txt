@@ -5,3 +5,6 @@
 export PATH="$HOME/pintos/src/utils:$PATH"
 
 grep fibonacci -R .
+
+* prjo3
+../utils/pintos -v -- -q run priority-lifo
